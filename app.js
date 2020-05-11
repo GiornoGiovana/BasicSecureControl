@@ -22,7 +22,7 @@ connection.once('open', () => {
 const usersRoute = require('./routes/users');
 
 app.use('/', usersRoute);
-console.log(process.env.SECRET);
+
 
 app.listen(3000, function(){
     console.log('Server listening on port 3000');
