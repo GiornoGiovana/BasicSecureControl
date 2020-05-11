@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const User = require('../models/user.model');
+const md5 =  require('md5');//HASH FUNCTION
 
 router.route('/').get((req, res) => {
     res.render('home');
@@ -15,7 +16,7 @@ router.route('/register')
 
     const newUser = new User({
         email: userName,
-        password: passWord
+        password: md5(passWord)
     });
 
     newUser.save((err) => {
@@ -34,7 +35,7 @@ router.route('/login')
 })
 .post((req, res) => {
     const user = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
 
     User.findOne({email: user}, (err, foundUser) => {
         if(err){
