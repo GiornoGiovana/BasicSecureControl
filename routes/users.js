@@ -9,6 +9,7 @@ router.route('/').get((req, res) => {
     res.render('home');
 });
 
+///////////// AUTHENTICATE WITH GOOGLE //////
 router.route("/auth/google").get(//Initialize authentication on google servers
     passport.authenticate("google", {scope: ['profile']})
 );
@@ -42,11 +43,15 @@ router.route('/register')
 
 ///////// SECRETS /////////
 router.route('/secrets').get((req, res) => {
-    if(req.isAuthenticated()){
-        res.render('secrets');
-    } else {
-        res.redirect('/login');
-    }
+    User.find({"secret": {$ne: null}}, (err, usersFound) => {
+        if (err) {
+            console.log(err);
+        } else {
+            if (usersFound){
+                res.render('secrets', {usersWithSecrets: usersFound});
+            }
+        }
+    });
 });
 
 ///////////////////  LOGIN  /////////////
@@ -73,6 +78,33 @@ router.route('/login')
 
 });
 
+///////////    SUBMIT    /////////
+router.route('/submit').get((req, res) => {
+    if(req.isAuthenticated()){
+        res.render('submit');
+    } else {
+        res.redirect('/login');
+    }
+})
+.post((req, res) => {
+    const mySecret = req.body.secret;
+
+    User.findById(req.user.id, (err, foundUser) => {
+        if(err){
+            console.log(err);
+        } else {
+            if (foundUser){
+                foundUser.secret = mySecret;
+                foundUser.save(() => {
+                    res.redirect("/secrets");
+                });
+            }
+        }
+    });
+
+});
+
+//////////////   LOGOUT /////
 router.route('/logout').get((req, res) => {
     req.logout();
     res.redirect('/');
