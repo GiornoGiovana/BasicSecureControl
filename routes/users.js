@@ -9,6 +9,17 @@ router.route('/').get((req, res) => {
     res.render('home');
 });
 
+router.route("/auth/google").get(//Initialize authentication on google servers
+    passport.authenticate("google", {scope: ['profile']})
+);
+
+router.route('/auth/google/secrets').get( //goole will tiderect into google/secrets
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect secret.
+    res.redirect('/secrets');//once they identicated go to secret
+  });
+
 ///////////////// REGISTER //////
 router.route('/register')
 .get((req, res) => {
