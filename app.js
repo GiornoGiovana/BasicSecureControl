@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
+const passport = require('passport')
+//const passportLocalMongoose = require('passport-local-mongoose');
+
 
 const app = express();
 
@@ -10,8 +14,18 @@ app.use(express.static("public"));
 
 app.set('view engine', 'ejs');
 
+app.use(session({
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 uri = "mongodb+srv://admin-sergio:jefrazam123@cluster0-l6gvi.mongodb.net/usersDB"
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.set("useCreateIndex", true);
 
 const connection = mongoose.connection;
 

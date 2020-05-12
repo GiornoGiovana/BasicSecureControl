@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const User = require('../models/user.model');
-const bcrypt = require('bcrypt'); //HASH FUNCTION WITH SALT ROUNDS
-const saltRounds = 10;
+const session = require('express-session');
+const passport = require('passport')
+const passportLocalMongoose = require('passport-local-mongoose');
 
 ////////////////////(ROOT PAGE (/)) ///////////////////
 router.route('/').get((req, res) => {
@@ -14,24 +15,27 @@ router.route('/register')
     res.render('register');
 })
 .post((req, res) => {
-    const userName = req.body.username;
-    const passWord = req.body.password;
 
-    bcrypt.hash(passWord, saltRounds, function(err, hash) {
-        
-        const newUser = new User({
-            email: userName,
-            password: hash
-        });
-        newUser.save((err) => {
-            if(!err){
-                console.log('User registerd!');
-                res.render('secrets');
-            }
-        });
-
+    User.register({username: req.body.username}, req.body.password, function(err, user){
+        if (err){
+            console.log(err);
+            res.redirect('/register');
+        } else {
+            passport.authenticate('local')(req, res, function(){ //callback only triggerd if the authentication success(setup a cookie)
+                res.redirect('/secrets')
+            });
+        };
     });
 
+});
+
+///////// SECRETS /////////
+router.route('/secrets').get((req, res) => {
+    if(req.isAuthenticated()){
+        res.render('secrets');
+    } else {
+        res.redirect('/login');
+    }
 });
 
 ///////////////////  LOGIN  /////////////
@@ -40,21 +44,27 @@ router.route('/login')
     res.render('login');
 })
 .post((req, res) => {
-    const user = req.body.username;
-    const password = (req.body.password);
+    
+    const user = new User({
+        username: req.body.username,
+        password: req.body.password
+    });
 
-    User.findOne({email: user}, (err, foundUser) => {
-        if(err){
+    req.login(user, (err) => {
+        if (err){
             console.log(err);
-        } else if(foundUser) {
-            bcrypt.compare(password, foundUser.password, function(err, result) {
-                if (result){
-                    res.render('secrets');
-                }
+        } else {
+            passport.authenticate("local")(req, res, () => {
+                res.redirect("/secrets");
             });
         }
     });
+
 });
 
+router.route('/logout').get((req, res) => {
+    req.logout();
+    res.redirect('/');
+});
 
 module.exports = router;
