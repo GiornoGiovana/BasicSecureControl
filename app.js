@@ -23,7 +23,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-uri = "mongodb+srv://admin-sergio:jefrazam123@cluster0-l6gvi.mongodb.net/usersDB"
+uri = process.env.MONGODB;
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.set("useCreateIndex", true);
 
